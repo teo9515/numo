@@ -1,9 +1,10 @@
-// src/app/transacciones/page.tsx
+// En src/app/transacciones/page.tsx (versión final corregida)
 
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { IoChevronBack } from "react-icons/io5";
 
 import { Account, Transaction } from "@/types";
 import TransactionList from "../components/TransactionList";
@@ -11,6 +12,8 @@ import AddTransactionModal from "../components/AddTransactionModal";
 
 export default async function TransactionsPage() {
   const cookieStore = await cookies();
+
+  // --- USANDO LA LÓGICA getAll/setAll QUE PREFIERES ---
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -20,25 +23,24 @@ export default async function TransactionsPage() {
           return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            try {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
               cookieStore.set(name, value, options);
-            } catch {
-              // Ignore
-            }
-          });
+            });
+          } catch {
+            // Este error puede ser ignorado en Server Components (páginas de solo lectura)
+          }
         },
       },
     }
   );
+  // --- FIN DEL BLOQUE DE CÓDIGO ---
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
   if (!user) redirect("/login");
 
-  // Datos
   const { data: userTransactions } = await supabase
     .from("transactions")
     .select("*")
@@ -50,43 +52,42 @@ export default async function TransactionsPage() {
   const { data: userAccounts } = await supabase
     .from("accounts")
     .select("id, name, balance");
-
   const accounts: Account[] = userAccounts || [];
 
   return (
-    <main className=" bg-[var(--brand-light)] min-h-screen">
-      <div className="max-w-3xl mx-auto">
-        <header className="mb-8">
-          <Link
-            href="/"
-            className="text-sm text-[var(--brand-orange)] hover:underline flex items-center gap-1"
-          >
-            <span>&larr;</span> Volver al Inicio
-          </Link>
+    // Ya no usamos <main> aquí porque el layout principal ya lo tiene
+    <div className="max-w-3xl mx-auto">
+      <header className="mb-6">
+        <Link
+          href="/"
+          className="flex items-center gap-2 text-[var(--color-primary)] hover:text-orange-400 transition-colors mb-4"
+        >
+          <IoChevronBack className="h-5 w-5" />
+          Volver al Inicio
+        </Link>
+        <h1 className="text-2xl font-bold text-white">
+          Historial de Transacciones
+        </h1>
+      </header>
 
-          <div className="flex justify-between items-center mt-4">
-            <h1 className="text-2xl font-extrabold text-[var(--text-primary)]">
-              Historial de Transacciones
-            </h1>
-            <AddTransactionModal accounts={accounts} />
-          </div>
-        </header>
-
-        <section className="bg-white rounded-3xl shadow-md p-4 md:p-6">
-          {transactions.length > 0 ? (
-            <TransactionList transactions={transactions} />
-          ) : (
-            <div className="text-center py-16">
-              <p className="text-[var(--text-secondary)]">
-                Aún no tienes transacciones registradas.
-              </p>
-              <p className="text-[var(--text-secondary)] mt-2">
-                Usa el botón + Transacción para agregar la primera.
-              </p>
-            </div>
-          )}
-        </section>
+      <div className="mb-8">
+        <AddTransactionModal accounts={accounts} />
       </div>
-    </main>
+
+      <section>
+        {transactions.length > 0 ? (
+          <TransactionList transactions={transactions} accounts={accounts} />
+        ) : (
+          <div className="text-center py-16 px-4 bg-[var(--color-surface)] rounded-2xl border border-white/5">
+            <p className="text-[var(--color-text-secondary)]">
+              Aún no tienes transacciones registradas.
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              Usa el botón Nueva transacción para agregar la primera.
+            </p>
+          </div>
+        )}
+      </section>
+    </div>
   );
 }
