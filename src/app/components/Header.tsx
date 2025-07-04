@@ -35,7 +35,7 @@ export default async function Header() {
   } = await supabase.auth.getUser();
 
   return (
-    <header className="flex w-full justify-between ">
+    <header className="flex w-full justify-between p-4">
       <div className="space-y-5 w-full">
         <div className="flex justify-between w-full">
           <h1 className="text-4xl font-extrabold tracking-tight text-white">
