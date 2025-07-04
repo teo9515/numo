@@ -1,25 +1,33 @@
-// En src/app/profile/page.tsx
+// En src/app/profile/page.tsx (versión final rediseñada)
 
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { IoChevronBack } from "react-icons/io5";
+
 import UpdateProfileForm from "../components/UpdateProfileForm";
 
 export default async function ProfilePage() {
   const cookieStore = await cookies();
+
+  // Usando la lógica getAll/setAll que prefieres
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
+        getAll() {
+          return cookieStore.getAll();
         },
-        set(name: string, value: string, options: CookieOptions) {
-          cookieStore.set(name, value, options);
-        },
-        remove(name: string, options: CookieOptions) {
-          cookieStore.set(name, "", options);
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // Ignorar errores
+          }
         },
       },
     }
@@ -29,29 +37,31 @@ export default async function ProfilePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Si no hay usuario, lo redirigimos a la página de login
   if (!user) {
     return redirect("/login");
   }
 
-  // Obtenemos los datos del perfil de la tabla 'profiles'
-  const { data: profile, error } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single();
 
-  if (error) {
-    console.error("Error fetching profile:", error);
-  }
-
   return (
-    <main className="p-4 md:p-8 bg-gray-50 min-h-screen">
-      <div className="max-w-xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">Editar Perfil</h1>
-        {/* Le pasamos los datos del usuario y del perfil al formulario */}
-        <UpdateProfileForm user={user} profile={profile} />
-      </div>
-    </main>
+    <div className="max-w-xl mx-auto">
+      <header className="mb-8">
+        <Link
+          href="/"
+          className="flex items-center gap-2 text-[var(--color-primary)] hover:text-orange-400 transition-colors mb-4"
+        >
+          <IoChevronBack className="h-5 w-5" />
+          Volver al Inicio
+        </Link>
+        <h1 className="text-2xl font-bold text-white">Mi Perfil</h1>
+        <p className="text-gray-400 mt-1">Actualiza tu información personal.</p>
+      </header>
+
+      <UpdateProfileForm user={user} profile={profile} />
+    </div>
   );
 }

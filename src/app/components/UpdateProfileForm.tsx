@@ -1,4 +1,4 @@
-// En src/components/UpdateProfileForm.tsx
+// En src/components/UpdateProfileForm.tsx (versión rediseñada)
 "use client";
 
 import type { User } from "@supabase/supabase-js";
@@ -21,41 +21,33 @@ export default function UpdateProfileForm({
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // --- LÓGICA DE ENVÍO ACTUALIZADA ---
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
 
-    // Creamos un objeto con los nombres exactos que espera nuestra función RPC
     const profileData = {
       new_full_name: formData.get("full_name") as string,
       new_username: formData.get("username") as string,
       new_phone: formData.get("phone") as string,
     };
 
-    // Llamamos a la función 'update_user_profile' que creamos en Supabase
     const { error } = await supabase.rpc("update_user_profile", profileData);
 
     if (error) {
-      // Un error común podría ser si el 'username' ya está en uso por otro usuario
-      console.error("Error updating profile:", error);
       alert("Hubo un error al actualizar el perfil: " + error.message);
     } else {
       alert("¡Perfil actualizado con éxito!");
-      // Refrescamos la página para que los datos se actualicen en toda la app
-      // por si mostramos el nombre en otro lugar, por ejemplo.
       router.refresh();
     }
   };
-  // --- FIN DE LA LÓGICA DE ENVÍO ---
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md border">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="p-6 bg-[var(--color-surface)] rounded-2xl shadow-lg border border-white/10">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-gray-400 mb-1"
           >
             Email
           </label>
@@ -64,13 +56,13 @@ export default function UpdateProfileForm({
             type="text"
             value={user.email ?? ""}
             disabled
-            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+            className="mt-1 w-full px-3 py-2 bg-dark-primary text-gray-400 border border-gray-600 rounded-md cursor-not-allowed"
           />
         </div>
         <div>
           <label
             htmlFor="full_name"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-gray-400 mb-1"
           >
             Nombre Completo
           </label>
@@ -79,13 +71,13 @@ export default function UpdateProfileForm({
             name="full_name"
             type="text"
             defaultValue={profile?.full_name ?? ""}
-            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 w-full px-3 py-2 bg-dark-primary text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
         </div>
         <div>
           <label
             htmlFor="username"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-gray-400 mb-1"
           >
             Nombre de Usuario
           </label>
@@ -94,13 +86,13 @@ export default function UpdateProfileForm({
             name="username"
             type="text"
             defaultValue={profile?.username ?? ""}
-            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 w-full px-3 py-2 bg-dark-primary text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
         </div>
         <div>
           <label
             htmlFor="phone"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-gray-400 mb-1"
           >
             Teléfono
           </label>
@@ -109,13 +101,13 @@ export default function UpdateProfileForm({
             name="phone"
             type="tel"
             defaultValue={profile?.phone ?? ""}
-            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 w-full px-3 py-2 bg-dark-primary text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
         </div>
         <div>
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-blue-700"
+            className="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-dark-surface transition-colors"
           >
             Guardar Cambios
           </button>
