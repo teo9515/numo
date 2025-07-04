@@ -59,7 +59,7 @@ export default function AddTransactionModal({ accounts }: AddTransactionProps) {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-gray-50 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-gray-50 text-left align-middle shadow-xl transition-all">
                   {/* Renderizamos nuestro formulario de transacciones dentro del modal */}
                   {/* Le pasamos la lista de cuentas para que el formulario funcione */}
                   <TransactionForm accounts={accounts} />

@@ -53,10 +53,10 @@ export default async function Home() {
     <main className="bg-[var(--color-background)] text-[var(--color-text-primary)] min-h-screen">
       <div className="max-w-4xl mx-auto ">
         {user ? (
-          <div className="space-y-8">
+          <div className="space-y-12">
             <div>
               <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
-                Your Balance
+                Tus cuentas
               </h2>
               <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
                 {accounts.length > 0 ? (
@@ -66,7 +66,7 @@ export default async function Home() {
                     </div>
                   ))
                 ) : (
-                  <div className="w-full text-center p-8 bg-[var(--color-surface)] rounded-2xl border border-[var(--color-secondary)] text-[var(--color-text-secondary)]">
+                  <div className="w-full text-center p-8 bg-[var(--color-surface)] rounded-lg border border-[var(--color-secondary)] text-[var(--color-text-secondary)]">
                     <p>Crea tu primera cuenta para empezar.</p>
                   </div>
                 )}
@@ -76,26 +76,10 @@ export default async function Home() {
               <AddTransactionModal accounts={accounts} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <NavCard
-                href="/transacciones"
-                title="Transacciones"
-                description="Historial y nuevos movimientos."
-              />
-              <NavCard
-                href="/cuentas"
-                title="Cuentas"
-                description="Administra y crea cuentas."
-              />
-              <NavCard
-                href="/balances"
-                title="Balances"
-                description="Análisis y resúmenes."
-              />
-              <NavCard
-                href="/perfil"
-                title="Mi Perfil"
-                description="Edita tu información."
-              />
+              <NavCard href="/transacciones" title="Transacciones" />
+              <NavCard href="/cuentas" title="Cuentas" />
+              <NavCard href="/balances" title="Balances" />
+              <NavCard href="/perfil" title="Mi Perfil" />
             </div>
           </div>
         ) : (
@@ -108,7 +92,7 @@ export default async function Home() {
               con claridad.
             </p>
             <Link href="/login">
-              <button className="bg-[var(--color-primary)] hover:bg-orange-600 text-white px-8 py-3 rounded-2xl text-base font-bold transition-colors shadow-lg shadow-[var(--color-primary)]/30">
+              <button className="bg-[var(--color-primary)] hover:bg-orange-600 text-white px-8 py-3 rounded-lg text-base font-bold transition-colors shadow-lg shadow-[var(--color-primary)]/30">
                 Empezar Ahora
               </button>
             </Link>

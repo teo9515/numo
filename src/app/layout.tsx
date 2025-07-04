@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className="p-6 space-y-5">
+      <body className="p-6 space-y-8">
         <Header />
         {children}
       </body>

@@ -38,7 +38,7 @@ export default function LoginPage() {
 
   return (
     <main className="p-4 bg-slate-50 min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg border border-gray-200">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
           Iniciar Sesión en Numo
         </h2>

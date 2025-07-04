@@ -59,7 +59,7 @@ export default function AccountCard({ account }: AccountCardProps) {
 
   return (
     <>
-      <div className="w-60 md:w-full flex-shrink-0 p-5 rounded-2xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-surface)] text-[var(--color-text-primary)] flex flex-col justify-between h-40 shadow-lg hover:scale-105 transition-transform duration-300 ease-in-out">
+      <div className="w-60 md:w-full flex-shrink-0 p-5 rounded-lg bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-surface)] text-[var(--color-text-primary)] flex flex-col justify-between h-40 shadow-lg hover:scale-105 transition-transform duration-300 ease-in-out">
         {/* Header de la tarjeta con nombre y acciones */}
         <div className="flex justify-between items-start">
           <h3 className="text-lg font-semibold">{account.name}</h3>
