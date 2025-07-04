@@ -36,10 +36,13 @@ export default async function Header() {
 
   return (
     <header className="flex w-full justify-between ">
-      <div className="space-y-5">
-        <h1 className="text-4xl font-extrabold tracking-tight text-white">
-          Numo
-        </h1>
+      <div className="space-y-5 w-full">
+        <div className="flex justify-between w-full">
+          <h1 className="text-4xl font-extrabold tracking-tight text-white">
+            Numo
+          </h1>
+          <div className="pt-2">{user && <LogoutButton />}</div>
+        </div>
         {user && (
           <div>
             <p className="text-md text-slate-400 ">Bienvenido de nuevo, </p>
@@ -47,7 +50,6 @@ export default async function Header() {
           </div>
         )}
       </div>
-      <div>{user && <LogoutButton />}</div>
     </header>
   );
 }

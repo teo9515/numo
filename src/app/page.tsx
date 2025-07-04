@@ -50,15 +50,15 @@ export default async function Home() {
   }
 
   return (
-    <main className="bg-[var(--color-background)] text-[var(--color-text-primary)] min-h-screen">
+    <main className="bg-[var(--color-background)] text-[var(--color-text-primary)] h-screen">
       <div className="max-w-4xl mx-auto ">
         {user ? (
-          <div className="space-y-12">
-            <div>
-              <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
                 Tus cuentas
               </h2>
-              <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+              <div className="flex gap-4 overflow-x-auto  snap-x snap-mandatory ">
                 {accounts.length > 0 ? (
                   accounts.map((account) => (
                     <div key={account.id} className="snap-start">
@@ -72,10 +72,10 @@ export default async function Home() {
                 )}
               </div>
             </div>
-            <div className="text-center">
+            <div className="text-center ">
               <AddTransactionModal accounts={accounts} />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <NavCard href="/transacciones" title="Transacciones" />
               <NavCard href="/cuentas" title="Cuentas" />
               <NavCard href="/balances" title="Balances" />
