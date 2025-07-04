@@ -1,26 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-background: #0D0D0D; /* fondo principal */
+  --color-surface: #1A1A1A;    /* cards y secciones */
+  --color-primary: #FF6B00;    /* naranja vivo (acciones, botones) */
+  --color-secondary: #A04210;  /* naranja oscuro (background cards) */
+  --color-text-primary: #FFFFFF;  /* texto principal */
+  --color-text-secondary: #CCCCCC; /* texto secundario */
+  --color-expense: #FF3B30;    /* gastos */
+  --color-income: #4CD964;     /* ingresos */
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-[var(--color-background)] text-[var(--color-text-primary)];
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
