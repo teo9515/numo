@@ -4,10 +4,11 @@
 
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
+import { useState } from "react"; // 1. Importamos useState para manejar el campo de monto
 
-// Definiendo los tipos que el componente necesita
+// Los tipos de Account y TransactionFormProps no cambian
 interface Account {
-  id: number; // El ID de la cuenta es un número
+  id: number;
   name: string;
   balance: number;
 }
@@ -18,78 +19,84 @@ interface TransactionFormProps {
 
 export default function TransactionForm({ accounts }: TransactionFormProps) {
   const router = useRouter();
+  // 2. Creamos un estado para manejar el valor del monto como texto
+  const [amount, setAmount] = useState("0");
+
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
+  // 3. Función para formatear el número con separadores de miles mientras el usuario escribe
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Quitamos cualquier caracter que no sea un número
+    const numericValue = parseInt(value.replace(/[^0-9]/g, ""), 10);
+    // Si el resultado no es un número (ej. el campo está vacío), lo seteamos a '0'
+    setAmount(isNaN(numericValue) ? "0" : numericValue.toLocaleString("es-CO"));
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // 1. Guardamos una referencia segura al formulario ANTES del 'await'
     const form = event.currentTarget;
+    const formData = new FormData(form);
+    const formObject = Object.fromEntries(formData.entries());
 
-    try {
-      const formData = new FormData(form);
-      const formObject = Object.fromEntries(formData.entries());
+    // 4. Limpiamos el valor del monto antes de enviarlo a la base de datos
+    const cleanAmount = Number(amount.replace(/[^0-9]/g, ""));
 
-      // Preparamos los datos con los nombres y tipos que espera la función RPC
-      const rpcParams = {
-        amount_val: Number(formObject.amount),
-        type_val: formObject.type as string,
-        account_id_val: Number(formObject.account_id), // Aseguramos que sea un número
-        description_val: formObject.description as string,
-      };
+    const rpcParams = {
+      amount_val: cleanAmount,
+      type_val: formObject.type as string,
+      account_id_val: Number(formObject.account_id),
+      description_val: formObject.description as string,
+    };
 
-      const { error } = await supabase.rpc("add_transaction", rpcParams);
+    const { error } = await supabase.rpc("add_transaction", rpcParams);
 
-      if (error) {
-        console.error("Error adding transaction:", error);
-        alert("Hubo un error al agregar la transacción: " + error.message);
-      } else {
-        alert("¡Transacción agregada con éxito!");
-        // 2. Usamos nuestra referencia segura para hacer el reset
-        form.reset();
-        router.refresh();
-      }
-    } catch (err) {
-      console.error("Error procesando formulario:", err);
-      alert("Error inesperado al procesar la transacción");
+    if (error) {
+      alert("Hubo un error al agregar la transacción: " + error.message);
+    } else {
+      alert("¡Transacción agregada con éxito!");
+      form.reset();
+      setAmount("0"); // Reseteamos el estado del monto
+      router.refresh();
     }
   };
 
   return (
-    // Este es tu JSX, está muy bien estilizado. No se ha cambiado.
-    <div className="mt-8 p-6 bg-white rounded-lg shadow-md">
-      <h3 className="text-xl font-bold mb-4 text-gray-800">
+    // Aplicamos el nuevo diseño oscuro
+    <div className="p-6 bg-black rounded-lg shadow-2xl shadow-white border border-white/20">
+      <h3 className="text-xl text-center font-bold mb-6 text-white">
         Agregar Nueva Transacción
       </h3>
 
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label
             htmlFor="amount"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-gray-400 mb-1"
           >
-            Monto:
+            Monto
           </label>
           <input
-            type="number"
+            type="text" // Cambiado a text para permitir el formato
+            inputMode="numeric" // Mejora la experiencia en móviles
             id="amount"
             name="amount"
-            step="0.01"
-            min="0"
+            value={amount} // Controlado por el estado
+            onChange={handleAmountChange} // Manejado por nuestra función
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="0.00"
+            className="w-full px-3 py-2 bg-dark-primary text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
         </div>
 
         <div>
           <label
             htmlFor="description"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-gray-400 mb-1"
           >
-            Descripción:
+            Descripción
           </label>
           <input
             type="text"
@@ -97,35 +104,35 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
             name="description"
             required
             maxLength={255}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Descripción de la transacción"
+            className="w-full px-3 py-2 bg-dark-primary text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="Ej: Café con amigos" // Placeholder mejorado
           />
         </div>
 
         <div>
           <fieldset>
-            <legend className="text-sm font-medium text-gray-700 mb-2">
-              Tipo:
+            <legend className="text-sm font-medium text-gray-400 mb-2">
+              Tipo de Transacción
             </legend>
-            <div className="flex gap-4">
-              <label className="flex items-center">
+            <div className="flex gap-6">
+              <label className="flex items-center cursor-pointer">
                 <input
                   type="radio"
                   name="type"
                   value="expense"
                   defaultChecked
-                  className="mr-2 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 mr-2 text-orange-500 bg-gray-700 border-gray-600 focus:ring-orange-500"
                 />
-                <span className="text-sm text-gray-700">Gasto</span>
+                <span className="text-sm text-gray-200">Gasto</span>
               </label>
-              <label className="flex items-center">
+              <label className="flex items-center cursor-pointer">
                 <input
                   type="radio"
                   name="type"
                   value="income"
-                  className="mr-2 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 mr-2 text-orange-500 bg-gray-700 border-gray-600 focus:ring-orange-500"
                 />
-                <span className="text-sm text-gray-700">Ingreso</span>
+                <span className="text-sm text-gray-200">Ingreso</span>
               </label>
             </div>
           </fieldset>
@@ -134,16 +141,16 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
         <div>
           <label
             htmlFor="account_id"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-gray-400 mb-1"
           >
-            Cuenta:
+            Cuenta
           </label>
           <select
             id="account_id"
             name="account_id"
             required
             disabled={accounts.length === 0}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className="w-full px-3 py-2 bg-dark-primary text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-800 disabled:cursor-not-allowed"
           >
             {accounts.length === 0 ? (
               <option value="">Crea una cuenta primero</option>
@@ -152,7 +159,7 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
                 <option value="">Selecciona una cuenta</option>
                 {accounts.map((account) => (
                   <option key={account.id} value={account.id}>
-                    {account.name} (${account.balance.toFixed(2)})
+                    {account.name}
                   </option>
                 ))}
               </>
@@ -163,7 +170,7 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
         <button
           type="submit"
           disabled={accounts.length === 0}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-dark-surface transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
         >
           {accounts.length === 0
             ? "Crea una cuenta primero"
