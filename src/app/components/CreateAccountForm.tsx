@@ -1,5 +1,4 @@
-// En src/components/CreateAccountForm.tsx
-
+// En src/components/CreateAccountForm.tsx (versión rediseñada)
 "use client";
 
 import { createBrowserClient } from "@supabase/ssr";
@@ -12,7 +11,6 @@ export default function CreateAccountForm() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // --- FUNCIÓN CORREGIDA ---
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -24,26 +22,16 @@ export default function CreateAccountForm() {
       return;
     }
 
-    // 1. Obtenemos la información del usuario actual desde el cliente de Supabase
     const {
       data: { user },
     } = await supabase.auth.getUser();
+    if (!user) return;
 
-    // Si por alguna razón no encontramos un usuario, detenemos el proceso
-    if (!user) {
-      alert(
-        "No se pudo identificar al usuario. Por favor, inicia sesión de nuevo."
-      );
-      return;
-    }
-
-    // 2. Ahora, en el objeto que insertamos, incluimos el user_id
     const { error } = await supabase
       .from("accounts")
       .insert({ name: accountName, balance: 0, user_id: user.id });
 
     if (error) {
-      console.error("Error creating account:", error);
       alert("Hubo un error al crear la cuenta: " + error.message);
     } else {
       alert("¡Cuenta creada con éxito!");
@@ -51,22 +39,21 @@ export default function CreateAccountForm() {
       router.refresh();
     }
   };
-  // --- FIN DE LA CORRECCIÓN ---
 
   return (
-    <div className="p-4 bg-gray-100 border-t">
-      <h4 className="font-semibold mb-2 text-gray-700">Crear nueva cuenta</h4>
+    <div className="p-4 bg-black/20 border-t border-white/10 mt-4">
+      <h4 className="font-semibold mb-2 text-gray-300">Crear nueva cuenta</h4>
       <form onSubmit={handleSubmit} className="flex items-center gap-2">
         <input
           type="text"
           name="accountName"
           placeholder="Ej: Ahorros, Tarjeta de Crédito..."
           required
-          className="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-grow px-3 py-2 bg-dark-primary text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 transition-colors"
+          className="bg-orange-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors"
         >
           Crear
         </button>

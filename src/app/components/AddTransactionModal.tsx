@@ -60,7 +60,7 @@ export default function AddTransactionModal({ accounts }: AddTransactionProps) {
               >
                 {/* --- CAMBIO CLAVE AQUÍ --- */}
                 {/* Hacemos el panel del modal transparente, ya que el formulario tiene su propio fondo */}
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-transparent text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-transparent text-left align-middle shadow-xl transition-all">
                   {/* Ahora el TransactionForm se mostrará con su propio diseño oscuro sin conflictos */}
                   <TransactionForm accounts={accounts} />
                 </Dialog.Panel>

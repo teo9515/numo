@@ -78,7 +78,7 @@ export default async function TransactionsPage() {
         {transactions.length > 0 ? (
           <TransactionList transactions={transactions} accounts={accounts} />
         ) : (
-          <div className="text-center py-16 px-4 bg-[var(--color-surface)] rounded-2xl border border-white/5">
+          <div className="text-center py-16 px-4 bg-[var(--color-surface)] rounded-lg border border-white/5">
             <p className="text-[var(--color-text-secondary)]">
               Aún no tienes transacciones registradas.
             </p>

@@ -1,9 +1,10 @@
-// En src/app/cuentas/page.tsx
+// En src/app/cuentas/page.tsx (versión final rediseñada)
 
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { IoChevronBack } from "react-icons/io5";
 
 import { Account } from "@/types";
 import AccountCard from "../components/AccountCard";
@@ -11,19 +12,24 @@ import CreateAccountForm from "../components/CreateAccountForm";
 
 export default async function CuentasPage() {
   const cookieStore = await cookies();
+
+  // Usando la lógica getAll/setAll que prefieres
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
+        getAll() {
+          return cookieStore.getAll();
         },
-        set(name: string, value: string, options: CookieOptions) {
-          cookieStore.set(name, value, options);
-        },
-        remove(name: string, options: CookieOptions) {
-          cookieStore.set(name, "", options);
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // Ignorar errores en componentes de servidor de solo lectura
+          }
         },
       },
     }
@@ -45,35 +51,32 @@ export default async function CuentasPage() {
   if (userAccounts) accounts = userAccounts;
 
   return (
-    <main className="p-4 md:p-8 bg-gray-50 min-h-screen">
-      <div className="max-w-4xl mx-auto">
-        <header className="mb-8">
-          <Link href="/" className="text-blue-600 hover:underline">
-            &larr; Volver al Inicio
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-800 mt-2">Mis Cuentas</h1>
-          <p className="text-gray-600">
-            Administra tus cuentas, edita sus nombres o elimina las que ya no
-            uses.
-          </p>
-        </header>
+    // El layout principal ya no necesita <main>
+    <div className="max-w-4xl mx-auto">
+      <header className="mb-8">
+        <Link
+          href="/"
+          className="flex items-center gap-2 text-[var(--color-primary)] hover:text-orange-400 transition-colors mb-4"
+        >
+          <IoChevronBack className="h-5 w-5" />
+          Volver al Inicio
+        </Link>
+        <h1 className="text-2xl font-bold text-white">Mis Cuentas</h1>
+      </header>
 
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {accounts.length > 0 ? (
-              accounts.map((account) => (
-                <AccountCard key={account.id} account={account} />
-              ))
-            ) : (
-              <p className="p-4 text-gray-500 col-span-full">
-                Aún no has creado ninguna cuenta. Usa el formulario de abajo
-                para empezar.
-              </p>
-            )}
-          </div>
-          <CreateAccountForm />
-        </div>
+      <div className=" grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-self-center-safe gap-6">
+        {accounts.length > 0 ? (
+          accounts.map((account) => (
+            <AccountCard key={account.id} account={account} />
+          ))
+        ) : (
+          <p className="p-8 text-center text-gray-400 col-span-full">
+            Aún no has creado ninguna cuenta.
+          </p>
+        )}
       </div>
-    </main>
+      {/* El formulario para crear ahora va adentro del contenedor principal */}
+      <CreateAccountForm />
+    </div>
   );
 }
