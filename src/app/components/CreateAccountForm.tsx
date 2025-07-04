@@ -53,7 +53,7 @@ export default function CreateAccountForm() {
         />
         <button
           type="submit"
-          className="bg-orange-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors"
+          className="bg-orange-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors "
         >
           Crear
         </button>

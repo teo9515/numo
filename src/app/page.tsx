@@ -74,7 +74,7 @@ export default async function Home() {
             <NavCard href="/transacciones" title="Transacciones" />
             <NavCard href="/cuentas" title="Cuentas" />
             <NavCard href="/balances" title="Balances" />
-            <NavCard href="/perfil" title="Mi Perfil" />
+            <NavCard href="/profile" title="Mi Perfil" />
           </div>
         </div>
       ) : (

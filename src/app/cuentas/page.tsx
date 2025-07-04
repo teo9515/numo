@@ -64,7 +64,7 @@ export default async function CuentasPage() {
         <h1 className="text-2xl font-bold text-white">Mis Cuentas</h1>
       </header>
 
-      <div className=" grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-self-center-safe gap-6">
+      <div className=" flex flex-col justify-center items-center gap-6">
         {accounts.length > 0 ? (
           accounts.map((account) => (
             <AccountCard key={account.id} account={account} />
