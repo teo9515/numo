@@ -3,7 +3,7 @@
 
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client"; // Cambio aquí
 import { useRouter } from "next/navigation";
 import type { Account } from "@/types";
 
@@ -19,10 +19,7 @@ export default function EditAccountModal({
   account,
 }: EditAccountModalProps) {
   const router = useRouter();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient(); // Cambio aquí - ya no necesitas las variables de entorno
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

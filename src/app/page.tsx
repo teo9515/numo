@@ -1,33 +1,14 @@
 // En src/app/page.tsx (versión simplificada y corregida)
 
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import Link from "next/link";
 import { Account } from "@/types";
 import AddTransactionModal from "./components/AddTransactionModal";
 import NavCard from "./components/NavCard";
 import AccountCard from "./components/AccountCard";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function Home() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        // Necesitamos las funciones set y remove para que el middleware funcione correctamente
-        set(name: string, value: string, options: CookieOptions) {
-          cookieStore.set(name, value, options);
-        },
-        remove(name: string, options: CookieOptions) {
-          cookieStore.set(name, "", options);
-        },
-      },
-    }
-  );
+  const supabase = await createClient();
 
   const {
     data: { user },

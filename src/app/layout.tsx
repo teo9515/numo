@@ -15,11 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      {/*
-        - flex flex-col: Convierte el body en un contenedor vertical.
-        - min-h-screen: Asegura que ocupe AL MENOS el alto de la pantalla, pero puede crecer.
-      */}
-      <body className="flex flex-col min-h-screen bg-[var(--color-background)] text-[var(--color-text-primary)]">
+      <body className="flex flex-col min-h-screen bg-[var(--color-background)] text-[var(--color-text-primary)] antialiased">
         <Header />
 
         <main className="flex-grow p-4 md:p-8">

@@ -1,7 +1,5 @@
 // En src/app/cuentas/page.tsx (versión final rediseñada)
 
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { IoChevronBack } from "react-icons/io5";
@@ -9,31 +7,11 @@ import { IoChevronBack } from "react-icons/io5";
 import { Account } from "@/types";
 import AccountCard from "../components/AccountCard";
 import CreateAccountForm from "../components/CreateAccountForm";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function CuentasPage() {
-  const cookieStore = await cookies();
-
-  // Usando la lógica getAll/setAll que prefieres
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
-            });
-          } catch {
-            // Ignorar errores en componentes de servidor de solo lectura
-          }
-        },
-      },
-    }
-  );
+  // Usar el cliente de servidor centralizado
+  const supabase = await createClient();
 
   const {
     data: { user },

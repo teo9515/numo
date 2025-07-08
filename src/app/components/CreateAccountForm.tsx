@@ -1,15 +1,12 @@
 // En src/components/CreateAccountForm.tsx (versión rediseñada)
 "use client";
 
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client"; // Cambio aquí
 import { useRouter } from "next/navigation";
 
 export default function CreateAccountForm() {
   const router = useRouter();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient(); // Cambio aquí - ya no necesitas las variables de entorno
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

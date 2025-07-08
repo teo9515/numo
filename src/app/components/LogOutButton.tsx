@@ -2,16 +2,13 @@
 
 "use client";
 
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client"; // Cambio aquí
 import { useRouter } from "next/navigation";
 import { FiLogOut } from "react-icons/fi";
 
 export default function LogOutButton() {
   const router = useRouter();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient(); // Cambio aquí - ya no necesitas las variables de entorno
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { Transaction, Account } from "@/types";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client"; // Importamos desde tu lib
 import { useRouter } from "next/navigation";
 import { FiTrash2, FiEdit } from "react-icons/fi";
 import EditTransactionModal from "./EditTransactionModal";
@@ -18,16 +18,14 @@ export default function TransactionList({
   accounts,
 }: TransactionListProps) {
   const router = useRouter();
-  // 1. Creación completa del cliente de Supabase, sin abreviaciones
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  // Usamos tu cliente de Supabase desde lib
+  const supabase = createClient();
 
-  // 2. Estados necesarios para manejar el modal de edición
+  // Estados necesarios para manejar el modal de edición y loading
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
     useState<Transaction | null>(null);
+  const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
   // --- Funciones auxiliares ---
   const formatDate = (dateString: string) => {
@@ -60,17 +58,28 @@ export default function TransactionList({
       }"?`
     );
 
-    if (isConfirmed) {
+    if (!isConfirmed) return;
+
+    setIsDeleting(transactionId);
+
+    try {
       const { error } = await supabase.rpc("delete_transaction", {
         transaction_id_val: transactionId,
       });
 
       if (error) {
+        console.error("Error al eliminar transacción:", error);
         alert("Hubo un error al eliminar la transacción: " + error.message);
-      } else {
-        alert("Transacción eliminada con éxito.");
-        router.refresh();
+        return;
       }
+
+      alert("Transacción eliminada con éxito.");
+      router.refresh();
+    } catch (error) {
+      console.error("Error inesperado:", error);
+      alert("Hubo un error inesperado. Por favor, intenta de nuevo.");
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -83,6 +92,23 @@ export default function TransactionList({
     setIsEditModalOpen(false);
     setSelectedTransaction(null);
   };
+
+  const handleModalSuccess = () => {
+    closeEditModal();
+    router.refresh();
+  };
+
+  // Si no hay transacciones, mostramos un mensaje
+  if (transactions.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-400">
+        <p>No hay transacciones registradas.</p>
+        <p className="text-sm mt-2">
+          Agrega tu primera transacción para comenzar.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -115,7 +141,8 @@ export default function TransactionList({
               <div className="flex flex-col">
                 <button
                   onClick={() => handleEdit(transaction)}
-                  className="p-2 text-gray-400 hover:text-orange-400 hover:bg-orange-500/10 rounded-full transition-colors"
+                  disabled={isDeleting === transaction.id}
+                  className="p-2 text-gray-400 hover:text-orange-400 hover:bg-orange-500/10 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Editar transacción"
                 >
                   <FiEdit className="h-5 w-5" />
@@ -125,10 +152,15 @@ export default function TransactionList({
                   onClick={() =>
                     handleDelete(transaction.id, transaction.description)
                   }
-                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors"
+                  disabled={isDeleting === transaction.id}
+                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Eliminar transacción"
                 >
-                  <FiTrash2 className="h-5 w-5" />
+                  {isDeleting === transaction.id ? (
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
+                  ) : (
+                    <FiTrash2 className="h-5 w-5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -143,6 +175,7 @@ export default function TransactionList({
           closeModal={closeEditModal}
           transaction={selectedTransaction}
           accounts={accounts}
+          onSuccess={handleModalSuccess}
         />
       )}
     </>

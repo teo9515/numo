@@ -3,7 +3,7 @@
 
 import type { User } from "@supabase/supabase-js";
 import { Profile } from "@/types";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client"; // Cambio aquí
 import { useRouter } from "next/navigation";
 
 type UpdateProfileFormProps = {
@@ -16,10 +16,7 @@ export default function UpdateProfileForm({
   profile,
 }: UpdateProfileFormProps) {
   const router = useRouter();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient(); // Cambio aquí - ya no necesitas las variables de entorno
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

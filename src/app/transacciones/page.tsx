@@ -1,7 +1,5 @@
 // En src/app/transacciones/page.tsx (versión final corregida)
 
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { IoChevronBack } from "react-icons/io5";
@@ -9,32 +7,11 @@ import { IoChevronBack } from "react-icons/io5";
 import { Account, Transaction } from "@/types";
 import TransactionList from "../components/TransactionList";
 import AddTransactionModal from "../components/AddTransactionModal";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function TransactionsPage() {
-  const cookieStore = await cookies();
-
-  // --- USANDO LA LÓGICA getAll/setAll QUE PREFIERES ---
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
-            });
-          } catch {
-            // Este error puede ser ignorado en Server Components (páginas de solo lectura)
-          }
-        },
-      },
-    }
-  );
-  // --- FIN DEL BLOQUE DE CÓDIGO ---
+  // Usar el cliente de servidor centralizado
+  const supabase = await createClient();
 
   const {
     data: { user },
