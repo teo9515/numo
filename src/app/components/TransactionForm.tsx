@@ -1,16 +1,16 @@
 // En src/components/TransactionForm.tsx
-
 "use client";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client"; // Importamos desde tu lib
+import { createClient } from "@/lib/supabase/client";
 
-// Los tipos de Account y TransactionFormProps no cambian
+// Definir el tipo Account aquí si no existe en @/types
 interface Account {
   id: number;
   name: string;
-  balance: number;
+  currency: string;
+  balance?: number;
 }
 
 interface TransactionFormProps {
@@ -19,56 +19,86 @@ interface TransactionFormProps {
 
 export default function TransactionForm({ accounts }: TransactionFormProps) {
   const router = useRouter();
-  // Estado para manejar el valor del monto como texto
   const [amount, setAmount] = useState("0");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedCurrency, setSelectedCurrency] = useState<string>(
+    accounts[0]?.currency || "COP"
+  );
 
-  // Usamos tu cliente de Supabase desde lib
   const supabase = createClient();
 
-  // Función para formatear el número con separadores de miles mientras el usuario escribe
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Quitamos cualquier caracter que no sea un número
     const numericValue = parseInt(value.replace(/[^0-9]/g, ""), 10);
-    // Si el resultado no es un número (ej. el campo está vacío), lo seteamos a '0'
     setAmount(isNaN(numericValue) ? "0" : numericValue.toLocaleString("es-CO"));
+  };
+
+  const handleAccountChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const accountId = Number(e.target.value);
+    const selectedAccount = accounts.find((acc) => acc.id === accountId);
+    if (selectedAccount) {
+      setSelectedCurrency(selectedAccount.currency);
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
     try {
       const form = event.currentTarget;
       const formData = new FormData(form);
       const formObject = Object.fromEntries(formData.entries());
-
-      // Limpiamos el valor del monto antes de enviarlo a la base de datos
       const cleanAmount = Number(amount.replace(/[^0-9]/g, ""));
+
+      // Validaciones
+      if (cleanAmount <= 0) {
+        throw new Error("El monto debe ser mayor a 0");
+      }
+
+      if (!formObject.account_id) {
+        throw new Error("Debes seleccionar una cuenta");
+      }
+
+      if (
+        !formObject.description ||
+        (formObject.description as string).trim() === ""
+      ) {
+        throw new Error("La descripción es requerida");
+      }
 
       const rpcParams = {
         amount_val: cleanAmount,
         type_val: formObject.type as string,
         account_id_val: Number(formObject.account_id),
-        description_val: formObject.description as string,
+        description_val: (formObject.description as string).trim(),
+        currency_val: selectedCurrency,
       };
+
+      console.log("Enviando parámetros:", rpcParams); // Para debugging
 
       const { error } = await supabase.rpc("add_transaction", rpcParams);
 
       if (error) {
-        console.error("Error al agregar transacción:", error);
-        alert("Hubo un error al agregar la transacción: " + error.message);
-        return;
+        console.error("Error de Supabase:", error);
+        throw new Error(`Error al agregar la transacción: ${error.message}`);
       }
 
-      alert("¡Transacción agregada con éxito!");
+      // Éxito
       form.reset();
-      setAmount("0"); // Reseteamos el estado del monto
+      setAmount("0");
+      setSelectedCurrency(accounts[0]?.currency || "COP");
       router.refresh();
-    } catch (error) {
-      console.error("Error inesperado:", error);
-      alert("Hubo un error inesperado. Por favor, intenta de nuevo.");
+
+      // Mostrar mensaje de éxito (opcional)
+      alert("¡Transacción agregada con éxito!");
+    } catch (err) {
+      console.error("Error en handleSubmit:", err);
+      const errorMessage =
+        err instanceof Error ? err.message : "Error inesperado";
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -80,13 +110,17 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
         Agregar Nueva Transacción
       </h3>
 
+      {error && (
+        <div className="mb-4 p-3 bg-red-600 text-white rounded-md">{error}</div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label
             htmlFor="amount"
             className="block text-sm font-medium text-gray-400 mb-1"
           >
-            Monto
+            Monto ({selectedCurrency})
           </label>
           <input
             type="text"
@@ -97,7 +131,7 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
             onChange={handleAmountChange}
             required
             disabled={isSubmitting}
-            className="w-full px-3 py-2 bg-dark-primary text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
+            className="w-full px-3 py-2 bg-gray-900 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
           />
         </div>
 
@@ -115,7 +149,7 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
             required
             maxLength={255}
             disabled={isSubmitting}
-            className="w-full px-3 py-2 bg-dark-primary text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
+            className="w-full px-3 py-2 bg-gray-900 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
             placeholder="Ej: Café con amigos"
           />
         </div>
@@ -160,8 +194,9 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
             id="account_id"
             name="account_id"
             required
+            onChange={handleAccountChange}
             disabled={accounts.length === 0 || isSubmitting}
-            className="w-full px-3 py-2 bg-dark-primary text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full px-3 py-2 bg-gray-900 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {accounts.length === 0 ? (
               <option value="">Crea una cuenta primero</option>
@@ -170,7 +205,7 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
                 <option value="">Selecciona una cuenta</option>
                 {accounts.map((account) => (
                   <option key={account.id} value={account.id}>
-                    {account.name}
+                    {account.name} ({account.currency})
                   </option>
                 ))}
               </>
@@ -181,13 +216,9 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
         <button
           type="submit"
           disabled={accounts.length === 0 || isSubmitting}
-          className="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-dark-surface transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isSubmitting
-            ? "Procesando..."
-            : accounts.length === 0
-            ? "Crea una cuenta primero"
-            : "Agregar Transacción"}
+          {isSubmitting ? "Procesando..." : "Agregar Transacción"}
         </button>
       </form>
     </div>

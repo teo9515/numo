@@ -1,4 +1,3 @@
-// En src/components/AccountCard.tsx
 "use client";
 
 import { useState } from "react";
@@ -6,22 +5,25 @@ import EditAccountModal from "./EditAccountModal";
 import { Account } from "@/types";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-// 1. Importamos los iconos que usaremos de react-icons
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 
 type AccountCardProps = {
   account: Account;
+  exchangeRate: number | null;
 };
 
-export default function AccountCard({ account }: AccountCardProps) {
+export default function AccountCard({
+  account,
+  exchangeRate,
+}: AccountCardProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
-  const formatCurrency = (balance: number) => {
+  const formatCurrency = (balance: number, currency: string) => {
     return new Intl.NumberFormat("es-CO", {
       style: "currency",
-      currency: "COP",
+      currency,
       minimumFractionDigits: 0,
     }).format(balance);
   };
@@ -33,16 +35,13 @@ export default function AccountCard({ account }: AccountCardProps) {
       );
       return;
     }
-
     const isConfirmed = window.confirm(
       `¿Estás seguro de que quieres eliminar la cuenta "${account.name}"? Esta acción es permanente y borrará todas sus transacciones.`
     );
-
     if (isConfirmed) {
       const { data, error } = await supabase.rpc("delete_account", {
         account_id_val: account.id,
       });
-
       if (error) {
         alert("Hubo un error al eliminar la cuenta: " + error.message);
       } else if (data && data.startsWith("Error:")) {
@@ -56,21 +55,30 @@ export default function AccountCard({ account }: AccountCardProps) {
 
   return (
     <>
-      <div className="w-60 md:w-full flex-shrink-0 p-5 rounded-lg bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-surface)] text-[var(--color-text-primary)] flex flex-col justify-between h-36 shadow-lg hover:scale-105 transition-transform duration-300 ease-in-out">
-        {/* Header de la tarjeta con nombre y acciones */}
+      <div
+        className="
+          w-[250px] h-44 p-5 rounded-2xl shadow-lg
+          flex flex-col justify-between
+          bg-gradient-to-br from-[var(--color-primary)] via-[#A04210] to-[var(--color-surface)]
+
+ text-[var(--color-text-primary)]
+          transition-transform duration-300 hover:scale-105
+        "
+      >
+        {/* Encabezado: Nombre y acciones */}
         <div className="flex justify-between items-start">
           <h3 className="text-lg font-semibold">{account.name}</h3>
           <div className="flex gap-2">
             <button
               onClick={() => setIsEditModalOpen(true)}
-              className="p-1 hover:text-[var(--color-primary)] rounded-full transition-colors"
+              className="p-1 hover:bg-white/10 rounded-full transition-colors"
               aria-label="Editar cuenta"
             >
               <FiEdit className="h-4 w-4" />
             </button>
             <button
               onClick={handleDelete}
-              className="p-1 hover:text-[var(--color-primary)] rounded-full transition-colors"
+              className="p-1 hover:bg-white/10 rounded-full transition-colors"
               aria-label="Eliminar cuenta"
             >
               <FiTrash2 className="h-4 w-4" />
@@ -78,18 +86,22 @@ export default function AccountCard({ account }: AccountCardProps) {
           </div>
         </div>
 
-        {/* Balance de la tarjeta */}
+        {/* Balance */}
         <div>
           <p className="text-xs text-[var(--color-text-secondary)]">
             Balance Actual
           </p>
           <p className="text-3xl font-bold tracking-tight">
-            {formatCurrency(account.balance)}
+            {formatCurrency(account.balance, account.currency)}
           </p>
+          {account.currency === "USD" && exchangeRate && (
+            <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+              (aprox. {formatCurrency(account.balance * exchangeRate, "COP")})
+            </p>
+          )}
         </div>
       </div>
 
-      {/* El modal no cambia, sigue funcionando igual por detrás */}
       <EditAccountModal
         isOpen={isEditModalOpen}
         closeModal={() => setIsEditModalOpen(false)}
