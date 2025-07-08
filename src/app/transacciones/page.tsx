@@ -28,7 +28,7 @@ export default async function TransactionsPage() {
 
   const { data: userAccounts } = await supabase
     .from("accounts")
-    .select("id, name, balance");
+    .select("id, name, balance, currency");
   const accounts: Account[] = userAccounts || [];
 
   return (
