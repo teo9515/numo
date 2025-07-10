@@ -196,7 +196,7 @@ export default function TransactionForm({ accounts }: TransactionFormProps) {
             required
             onChange={handleAccountChange}
             disabled={accounts.length === 0 || isSubmitting}
-            className="w-full px-3 py-2 bg-gray-900 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full px-3 h-12 bg-gray-900 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {accounts.length === 0 ? (
               <option value="">Crea una cuenta primero</option>

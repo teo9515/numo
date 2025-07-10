@@ -186,7 +186,7 @@ export default function TransferModal({ accounts }: TransferModalProps) {
                     setSourceAccountId(e.target.value);
                     setDestinationAccountId("");
                   }}
-                  className="w-full px-3 py-2 bg-gray-900 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
+                  className="w-full px-3 h-12 bg-gray-900 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
                   required
                   disabled={isLoading}
                 >
@@ -210,7 +210,7 @@ export default function TransferModal({ accounts }: TransferModalProps) {
                   id="destination"
                   value={destinationAccountId}
                   onChange={(e) => setDestinationAccountId(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-900 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 disabled:bg-gray-800 disabled:cursor-not-allowed"
+                  className="w-full px-3 h-12 bg-gray-900 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 disabled:bg-gray-800 disabled:cursor-not-allowed"
                   required
                   disabled={!sourceAccountId || isLoading}
                 >
@@ -277,7 +277,7 @@ export default function TransferModal({ accounts }: TransferModalProps) {
                 </div>
               )}
 
-              <div className="flex justify-end gap-4 pt-4">
+              <div className="flex justify-center gap-4 pt-4">
                 <button
                   type="button"
                   onClick={handleClose}
