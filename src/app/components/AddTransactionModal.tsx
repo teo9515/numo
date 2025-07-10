@@ -26,7 +26,7 @@ export default function AddTransactionModal({ accounts }: AddTransactionProps) {
       <button
         type="button"
         onClick={openModal}
-        className="bg-orange-500 text-white h-12 w-[180px] rounded-lg font-normal hover:bg-orange-600 transition-colors text-sm tracking-[2px] hover:cursor-pointer"
+        className="bg-[var(--color-primary)] border border-[var(--color-text-secondary)]/20 text-white h-12 w-[180px] rounded-lg font-normal hover:bg-orange-600 transition-colors text-sm tracking-[2px] hover:cursor-pointer"
       >
         Nueva transacción
       </button>
