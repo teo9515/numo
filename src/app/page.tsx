@@ -73,7 +73,7 @@ export default async function Home() {
             <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
               Acciones rápidas
             </h3>
-            <div className="flex  items-center gap-4 justify-center">
+            <div className="flex w-full items-center space-x-4 justify-center">
               <AddTransactionModal accounts={accounts} />
               <TransferModal accounts={accounts} />
             </div>
@@ -93,19 +93,21 @@ export default async function Home() {
           </div>
         </div>
       ) : (
-        <div className="text-center mt-16 md:mt-32">
-          <h2 className="text-4xl font-bold text-[var(--color-text-primary)] mb-4">
-            Controla tus finanzas.
-          </h2>
-          <p className="text-[var(--color-text-secondary)] text-lg mb-8 max-w-md mx-auto">
-            Numo te da las herramientas para organizar tus ingresos y gastos con
-            claridad.
-          </p>
-          <a href="/login">
-            <button className="bg-[var(--color-primary)] hover:bg-orange-600 text-white px-8 py-3 rounded-lg text-base font-bold transition-colors shadow-lg shadow-[var(--color-primary)]/30">
-              Empezar Ahora
-            </button>
-          </a>
+        <div className="flex items-center justify-center h-max px-4">
+          <div className="text-center max-w-md">
+            <h2 className="text-4xl md:text-5xl font-bold text-[var(--color-text-primary)] mb-4 leading-tight">
+              Controla tus finanzas.
+            </h2>
+            <p className="text-[var(--color-text-secondary)] text-lg mb-8">
+              Numo te da las herramientas para organizar tus ingresos y gastos
+              con claridad.
+            </p>
+            <a href="/login">
+              <button className="bg-[var(--color-primary)] hover:bg-orange-600 text-white px-8 py-3 rounded-lg text-base font-bold transition-colors shadow-lg shadow-[var(--color-primary)]/30">
+                Empezar Ahora
+              </button>
+            </a>
+          </div>
         </div>
       )}
     </>
