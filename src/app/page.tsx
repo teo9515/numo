@@ -73,7 +73,7 @@ export default async function Home() {
             <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
               Acciones rápidas
             </h3>
-            <div className="flex w-full items-center space-x-4 justify-center">
+            <div className="flex w-full items-center space-x-2 justify-center">
               <AddTransactionModal accounts={accounts} />
               <TransferModal accounts={accounts} />
             </div>
