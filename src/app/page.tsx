@@ -1,11 +1,11 @@
-// En src/app/page.tsx (versión final y robusta)
+// En src/app/page.tsx (Versión con TransferModal)
 
 import { Account } from "@/types";
 import AddTransactionModal from "./components/AddTransactionModal";
+import TransferModal from "./components/TransferModal";
 import NavCard from "./components/NavCard";
 import AccountCard from "./components/AccountCard";
 import { createClient } from "@/lib/supabase/server";
-// 1. Importamos nuestro servicio centralizado
 import { exchangeRateService } from "@/services/exchangeRateService";
 
 export default async function Home() {
@@ -15,9 +15,6 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // --- INICIO DE LA CORRECCIÓN ---
-
-  // 2. Usamos el servicio para obtener la tasa. Es más limpio y consistente.
   const usdToCopRate = await exchangeRateService.getExchangeRate("USD", "COP");
 
   let accounts: Account[] = [];
@@ -34,8 +31,6 @@ export default async function Home() {
     }
   }
 
-  // --- FIN DE LA CORRECCIÓN ---
-
   return (
     <>
       {user ? (
@@ -46,7 +41,6 @@ export default async function Home() {
             </h2>
             <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
               {accounts.length > 0 ? (
-                // 3. Aplicamos la misma lógica de renderizado seguro que en la página de cuentas
                 accounts.map((account, index) => {
                   if (!account) {
                     console.warn(
@@ -74,15 +68,28 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="text-center">
-            <AddTransactionModal accounts={accounts} />
+          {/* Sección de acciones rápidas */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
+              Acciones rápidas
+            </h3>
+            <div className="flex  items-center gap-4 justify-center">
+              <AddTransactionModal accounts={accounts} />
+              <TransferModal accounts={accounts} />
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <NavCard href="/transacciones" title="Transacciones" />
-            <NavCard href="/cuentas" title="Cuentas" />
-            <NavCard href="/balances" title="Balances" />
-            <NavCard href="/profile" title="Mi Perfil" />
+          {/* Navegación */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
+              Menú
+            </h3>
+            <div className="w-full grid grid-cols-2 justify-items-center  gap-4">
+              <NavCard href="/transacciones" title="Transacciones" />
+              <NavCard href="/cuentas" title="Cuentas" />
+              <NavCard href="/balances" title="Balances" />
+              <NavCard href="/profile" title="Mi Perfil" />
+            </div>
           </div>
         </div>
       ) : (
