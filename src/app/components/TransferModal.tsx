@@ -143,7 +143,7 @@ export default function TransferModal({ accounts }: TransferModalProps) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="w-[180px] h-12 bg-orange-500 text-white text-sm tracking-[2px] rounded-lg font-normal hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+        className="bg-[var(--color-primary)] border border-[var(--color-text-secondary)]/20 text-white h-12 w-[180px] rounded-lg font-normal hover:bg-orange-600 transition-colors text-sm tracking-[2px] hover:cursor-pointer"
         aria-label="Hacer transferencia entre cuentas"
       >
         Entre Cuentas
