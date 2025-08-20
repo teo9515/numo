@@ -52,8 +52,8 @@ class ExchangeRateService {
 
   private getEmergencyRate(from: string, to: string): number | null {
     if (`${from}-${to}` === 'USD-COP') {
-      console.log(`🆘 Usando tasa de emergencia: 4100`);
-      return 4100; // Tasa de emergencia fija
+      console.log(`🆘 Usando tasa de emergencia: 4000`);
+      return 4000; // Tasa de emergencia fija
     }
     return null;
   }
