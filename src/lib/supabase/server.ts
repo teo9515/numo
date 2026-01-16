@@ -12,15 +12,29 @@ export const createClient = async () => {
         getAll() {
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet) {
+        // CORRECCIÓN: Definimos el tipo completo en lugar de usar 'any'
+        setAll(cookiesToSet: { 
+          name: string
+          value: string
+          options: {
+            path?: string
+            domain?: string
+            maxAge?: number
+            expires?: Date | number
+            httpOnly?: boolean
+            secure?: boolean
+            sameSite?: 'lax' | 'strict' | 'none'
+            priority?: 'low' | 'medium' | 'high'
+          }
+        }[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             )
           } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+            // El método `setAll` fue llamado desde un Componente de Servidor.
+            // Esto se puede ignorar si tienes un middleware refrescando
+            // las sesiones de usuario.
           }
         },
       },
