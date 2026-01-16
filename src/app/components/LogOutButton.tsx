@@ -17,7 +17,7 @@ export default function LogOutButton() {
 
   return (
     <button onClick={handleLogout}>
-      <FiLogOut className="w-6 h-6 text-[var(--brand-orange)] hover:text-[var(--brand-orange-hover)] transition-colors" />
+      <FiLogOut className="w-6 h-6 hover:cursor-pointer text-[var(--brand-orange)] hover:text-[var(--brand-orange-hover)] transition-colors" />
     </button>
   );
 }

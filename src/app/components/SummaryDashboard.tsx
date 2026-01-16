@@ -33,7 +33,7 @@ const SummaryCard = ({
 
   return (
     // --- TARJETA REDISEÑADA ---
-    <div className="p-4 bg-[var(--color-surface)] rounded-xl shadow-lg border border-white/5">
+    <div className="p-4 bg-[var(--color-surface)] rounded-lg shadow-lg border border-white/5">
       <h4 className="text-sm font-medium text-[var(--color-text-secondary)]">
         {title}
       </h4>

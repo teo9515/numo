@@ -1,10 +1,17 @@
-// En src/components/TransferModal.tsx (Con formato de miles en el monto)
+// En src/components/TransferModal.tsx
 "use client";
 
 import { useState, useMemo, FormEvent, ChangeEvent } from "react";
 import { Account } from "@/types";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import {
+  FiRepeat,
+  FiArrowRight,
+  FiCreditCard,
+  FiArrowDown,
+} from "react-icons/fi";
+import CustomSelect from "./CustomSelect"; // <--- IMPORTANTE: Usamos nuestro componente personalizado
 
 function formatCurrency(balance: number, currency: string) {
   return new Intl.NumberFormat("es-CO", {
@@ -31,6 +38,7 @@ export default function TransferModal({ accounts }: TransferModalProps) {
   const supabase = createClient();
   const router = useRouter();
 
+  // Filtrar cuentas destino (excluyendo la seleccionada en origen)
   const destinationAccounts = useMemo(() => {
     return accounts.filter((acc) => String(acc.id) !== sourceAccountId);
   }, [accounts, sourceAccountId]);
@@ -39,9 +47,24 @@ export default function TransferModal({ accounts }: TransferModalProps) {
     return accounts.find((acc) => String(acc.id) === sourceAccountId);
   }, [accounts, sourceAccountId]);
 
-  // --- INICIO DE CAMBIOS ---
+  // --- PREPARAR OPCIONES PARA CUSTOM SELECT ---
 
-  // 1. LIMPIAR el string formateado para obtener un número
+  // Opciones para "Desde" (Todas las cuentas con saldo visible)
+  const sourceOptions = accounts.map((acc) => ({
+    id: acc.id,
+    label: acc.name,
+    subLabel: formatCurrency(acc.balance, acc.currency),
+  }));
+
+  // Opciones para "Hacia" (Filtradas, mostrando moneda)
+  const destinationOptions = destinationAccounts.map((acc) => ({
+    id: acc.id,
+    label: acc.name,
+    subLabel: acc.currency,
+  }));
+
+  // ---------------------------------------------
+
   const getCleanAmount = (value: string): number => {
     return Number(value.replace(/[^0-9]/g, ""));
   };
@@ -51,7 +74,6 @@ export default function TransferModal({ accounts }: TransferModalProps) {
       return "Por favor, selecciona las cuentas de origen y destino.";
     }
 
-    // Usamos la función para obtener el número limpio
     const numAmount = getCleanAmount(amount);
 
     if (isNaN(numAmount) || numAmount <= 0) {
@@ -83,7 +105,6 @@ export default function TransferModal({ accounts }: TransferModalProps) {
     setIsLoading(true);
 
     try {
-      // Usamos la función para obtener el número limpio antes de enviarlo
       const cleanAmount = getCleanAmount(amount);
 
       const { data, error: rpcError } = await supabase.rpc("transfer_balance", {
@@ -124,16 +145,11 @@ export default function TransferModal({ accounts }: TransferModalProps) {
     resetForm();
   };
 
-  // 2. REEMPLAZAMOS la función para que formatee el número
   const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Limpiamos todo lo que no sea un dígito
     const numericValue = parseInt(value.replace(/[^0-9]/g, ""), 10);
-    // Formateamos el número con separadores de miles o lo dejamos como string vacío si no es un número
     setAmount(isNaN(numericValue) ? "" : numericValue.toLocaleString("es-CO"));
   };
-
-  // --- FIN DE CAMBIOS ---
 
   if (accounts.length < 2) {
     return null;
@@ -143,155 +159,145 @@ export default function TransferModal({ accounts }: TransferModalProps) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="bg-[var(--color-primary)] border border-[var(--color-text-secondary)]/20 text-white h-12 w-[180px] rounded-lg font-normal hover:bg-orange-600 transition-colors text-sm tracking-[2px] hover:cursor-pointer"
+        className="btn-primary"
         aria-label="Hacer transferencia entre cuentas"
       >
-        Entre Cuentas
+        Entre cuentas
       </button>
 
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50 p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) handleClose();
           }}
         >
-          <div className="p-6 bg-black rounded-lg shadow-2xl shadow-white/10 border border-white/20 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-white text-center w-full">
-                Transferir entre Cuentas
-              </h2>
+          {/* Tarjeta estilo Numo */}
+          <div className="bg-[var(--color-surface)] border border-white/10 rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl relative">
+            {/* Decoración de fondo */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-primary)]/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+            {/* Header del Modal */}
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[var(--color-primary)]/10 rounded-lg text-[var(--color-primary)]">
+                  <FiRepeat size={20} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Transferir</h2>
+                  <p className="text-xs text-[var(--color-text-secondary)]">
+                    Mueve dinero entre tus bolsillos
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={handleClose}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-colors p-1 hover:cursor-pointer"
                 aria-label="Cerrar modal"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* ... (resto del formulario sin cambios) ... */}
-              <div>
-                <label
-                  htmlFor="source"
-                  className="block text-sm font-medium text-gray-400 mb-1"
-                >
-                  Desde la cuenta:
-                </label>
-                <select
-                  id="source"
-                  value={sourceAccountId}
-                  onChange={(e) => {
-                    setSourceAccountId(e.target.value);
-                    setDestinationAccountId("");
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* --- AQUI REEMPLAZAMOS LOS SELECTS --- */}
+              <div className="space-y-4">
+                {/* Selector ORIGEN */}
+                <CustomSelect
+                  label="Desde"
+                  options={sourceOptions}
+                  value={Number(sourceAccountId)} // CustomSelect usa number para IDs
+                  onChange={(val) => {
+                    setSourceAccountId(String(val));
+                    setDestinationAccountId(""); // Reset destino al cambiar origen
                   }}
-                  className="w-full px-3 h-12 bg-gray-900 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
-                  required
+                  placeholder="Selecciona cuenta origen"
+                  icon={<FiCreditCard />}
                   disabled={isLoading}
-                >
-                  <option value="">Selecciona una cuenta</option>
-                  {accounts.map((acc) => (
-                    <option key={acc.id} value={acc.id}>
-                      {acc.name} ({formatCurrency(acc.balance, acc.currency)})
-                    </option>
-                  ))}
-                </select>
-              </div>
+                />
 
-              <div>
-                <label
-                  htmlFor="destination"
-                  className="block text-sm font-medium text-gray-400 mb-1"
-                >
-                  Hacia la cuenta:
-                </label>
-                <select
-                  id="destination"
-                  value={destinationAccountId}
-                  onChange={(e) => setDestinationAccountId(e.target.value)}
-                  className="w-full px-3 h-12 bg-gray-900 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 disabled:bg-gray-800 disabled:cursor-not-allowed"
-                  required
+                {/* Icono de flecha hacia abajo decorativo */}
+                <div className="flex justify-center -my-3 relative z-10 pointer-events-none">
+                  <div className="bg-[var(--color-surface)] border border-white/10 rounded-full p-1 text-gray-400 shadow-lg">
+                    <FiArrowDown className="w-3 h-3" />
+                  </div>
+                </div>
+
+                {/* Selector DESTINO */}
+                <CustomSelect
+                  label="Hacia"
+                  options={destinationOptions}
+                  value={Number(destinationAccountId)}
+                  onChange={(val) => setDestinationAccountId(String(val))}
+                  placeholder="Selecciona cuenta destino"
+                  icon={<FiArrowRight />}
                   disabled={!sourceAccountId || isLoading}
-                >
-                  <option value="">Selecciona una cuenta</option>
-                  {destinationAccounts.map((acc) => (
-                    <option key={acc.id} value={acc.id}>
-                      {acc.name} ({acc.currency})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="amount"
-                  className="block text-sm font-medium text-gray-400 mb-1"
-                >
-                  Monto:
-                  {sourceAccount && (
-                    <span className="text-xs text-gray-400 ml-2">
-                      Disponible:{" "}
-                      {formatCurrency(
-                        sourceAccount.balance,
-                        sourceAccount.currency
-                      )}
-                    </span>
-                  )}
-                </label>
-                {/* 3. El input ahora usa la nueva función de manejo */}
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  id="amount"
-                  value={amount}
-                  onChange={handleAmountChange}
-                  placeholder="0"
-                  className="w-full px-3 py-2 bg-gray-900 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
-                  required
-                  disabled={isLoading}
                 />
               </div>
+              {/* -------------------------------------- */}
 
-              <div>
-                <label
-                  htmlFor="description"
-                  className="block text-sm font-medium text-gray-400 mb-1"
-                >
-                  Descripción:
-                </label>
-                <input
-                  type="text"
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-900 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
-                  maxLength={100}
-                  disabled={isLoading}
-                />
+              {/* Monto y Descripción */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="amount"
+                    className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider"
+                  >
+                    Monto
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    id="amount"
+                    value={amount}
+                    onChange={handleAmountChange}
+                    placeholder="0"
+                    className="w-full px-4 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="description"
+                    className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider"
+                  >
+                    Nota
+                  </label>
+                  <input
+                    type="text"
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full px-4 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all placeholder:text-gray-600"
+                    maxLength={20}
+                    disabled={isLoading}
+                  />
+                </div>
               </div>
 
               {error && (
-                <div className="p-3 bg-red-600 text-white rounded-md text-sm">
+                <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm text-center animate-pulse">
                   {error}
                 </div>
               )}
 
-              <div className="flex justify-center gap-4 pt-4">
+              <div className="grid grid-cols-2 gap-3 pt-2">
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                  className="px-4 py-2 rounded-lg border border-white/10 text-gray-300 hover:bg-white/5 font-medium transition-all hover:cursor-pointer"
                   disabled={isLoading}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="bg-orange-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  className="btn-primary"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Transfiriendo..." : "Confirmar"}
+                  {isLoading ? "Enviando..." : "Confirmar"}
                 </button>
               </div>
             </form>

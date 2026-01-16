@@ -16,3 +16,34 @@ body {
   font-family: 'Inter', sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* --- SCROLLBAR PERSONALIZADO SUTIL --- */
+@layer utilities {
+  .scrollbar-sutil::-webkit-scrollbar {
+    height: 6px; /* Altura fina para scroll horizontal */
+    width: 6px;  /* Ancho fino para scroll vertical */
+  }
+
+  .scrollbar-sutil::-webkit-scrollbar-track {
+    background: transparent; /* Fondo transparente */
+  }
+
+  .scrollbar-sutil::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.1); /* Gris muy sutil por defecto */
+    border-radius: 10px; /* Bordes totalmente redondos */
+    transition: background-color 0.3s ease;
+  }
+
+  /* Al pasar el mouse sobre el contenedor, el scroll se pone naranja */
+  .scrollbar-sutil:hover::-webkit-scrollbar-thumb {
+    background-color: var(--color-primary); 
+  }
+}
+@layer components {
+  .btn-primary {
+    @apply w-44 bg-[var(--color-primary)] text-white font-medium tracking-[0.5px] py-2 rounded-lg shadow-lg shadow-orange-900/20 transition-all active:scale-[0.98] cursor-pointer text-[14.5px];
+    
+    /* Estados Hover (separados para mayor claridad) */
+    @apply hover:bg-orange-600 hover:shadow-orange-900/30;
+  }
+}

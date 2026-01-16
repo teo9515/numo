@@ -1,4 +1,3 @@
-// En src/components/EditTransactionModal.tsx
 "use client";
 
 import { Dialog, Transition } from "@headlessui/react";
@@ -6,13 +5,25 @@ import { Fragment, useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import type { Account, Transaction } from "@/types";
+import { toast } from "sonner"; // <--- IMPORTAR SONNER
+import {
+  FiEdit2,
+  FiX,
+  FiDollarSign,
+  FiAlignLeft,
+  FiCalendar,
+  FiCreditCard,
+  FiArrowDownLeft,
+  FiArrowUpRight,
+  FiSave,
+} from "react-icons/fi";
 
 type EditTransactionModalProps = {
   isOpen: boolean;
   closeModal: () => void;
   transaction: Transaction;
   accounts: Account[];
-  onSuccess?: () => void; // Nuevo prop opcional para callback
+  onSuccess?: () => void;
 };
 
 export default function EditTransactionModal({
@@ -23,21 +34,23 @@ export default function EditTransactionModal({
   onSuccess,
 }: EditTransactionModalProps) {
   const router = useRouter();
+  const supabase = createClient();
 
-  // Estado para manejar el valor del monto, inicializándolo con el valor actual de la transacción
+  // Estado para el monto formateado
   const [amount, setAmount] = useState(
     transaction.amount.toLocaleString("es-CO")
   );
+
+  // Estado para el tipo de transacción
+  const [type, setType] = useState<"income" | "expense">(transaction.type);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Este efecto actualiza el monto en el formulario si la transacción seleccionada cambia
   useEffect(() => {
     setAmount(transaction.amount.toLocaleString("es-CO"));
+    setType(transaction.type);
   }, [transaction]);
 
-  const supabase = createClient();
-
-  // Función para formatear el número con separadores de miles
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const numericValue = parseInt(value.replace(/[^0-9]/g, ""), 10);
@@ -52,7 +65,6 @@ export default function EditTransactionModal({
       const form = event.currentTarget;
       const formData = new FormData(form);
 
-      // Limpiamos el valor del monto antes de enviarlo
       const cleanAmount = Number(amount.replace(/[^0-9]/g, ""));
 
       const rpcParams = {
@@ -66,45 +78,45 @@ export default function EditTransactionModal({
 
       const { error } = await supabase.rpc("edit_transaction", rpcParams);
 
-      if (error) {
-        console.error("Error al actualizar transacción:", error);
-        alert("Error al actualizar la transacción: " + error.message);
-        return;
-      }
+      if (error) throw error;
 
-      alert("Transacción actualizada con éxito.");
+      // ÉXITO: Notificación bonita
+      toast.success("Transacción actualizada correctamente");
 
-      // Llamar al callback si existe, si no, hacer refresh
+      // Llamar al callback o refrescar
       if (onSuccess) {
         onSuccess();
       } else {
         router.refresh();
       }
-
       closeModal();
-    } catch (error) {
-      console.error("Error inesperado:", error);
-      alert("Hubo un error inesperado. Por favor, intenta de nuevo.");
+    } catch (error: unknown) {
+      // ERROR: Notificación bonita y Type Safe
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Error desconocido al actualizar";
+      console.error("Error:", error);
+
+      toast.error("Error al actualizar: " + errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Función para cerrar el modal sin perder el estado
   const handleClose = () => {
-    if (!isSubmitting) {
-      closeModal();
-    }
+    if (!isSubmitting) closeModal();
   };
 
-  // Formateamos la fecha para que el input type="date" la entienda
+  // Formatear fecha YYYY-MM-DD
   const formattedDate = new Date(transaction.transaction_date)
     .toISOString()
     .split("T")[0];
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={handleClose}>
+      <Dialog as="div" className="relative z-50" onClose={handleClose}>
+        {/* Backdrop */}
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -114,7 +126,7 @@ export default function EditTransactionModal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-75" />
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -128,22 +140,85 @@ export default function EditTransactionModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden p-6 bg-black rounded-lg shadow-2xl shadow-white border border-white/20 text-left align-middle transition-all">
-                <Dialog.Title
-                  as="h3"
-                  className="text-xl text-center font-bold mb-6 text-white"
-                >
-                  Editar Transacción
-                </Dialog.Title>
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-[var(--color-surface)] border border-white/10 p-6 text-left align-middle shadow-2xl transition-all relative">
+                {/* Glow decorativo */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-primary)]/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Header */}
+                <div className="flex justify-between items-start mb-6 relative z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-[var(--color-primary)]/10 rounded-lg text-[var(--color-primary)]">
+                      <FiEdit2 size={20} />
+                    </div>
+                    <div>
+                      <Dialog.Title
+                        as="h3"
+                        className="text-xl font-bold text-white"
+                      >
+                        Editar Transacción
+                      </Dialog.Title>
+                      <p className="text-xs text-[var(--color-text-secondary)]">
+                        Modifica los detalles del movimiento
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleClose}
+                    className="text-gray-400 hover:text-white transition-colors p-1 cursor-pointer"
+                  >
+                    <FiX size={20} />
+                  </button>
+                </div>
+
+                <form
+                  onSubmit={handleSubmit}
+                  className="space-y-5 relative z-10"
+                >
+                  {/* Selector de TIPO */}
+                  <div className="grid grid-cols-2 gap-3 p-1 bg-black/40 rounded-xl border border-white/5">
+                    <label
+                      className={`cursor-pointer flex items-center justify-center gap-2 py-2 rounded-lg transition-all border ${
+                        type === "expense"
+                          ? "bg-red-500/10 border-red-500/50 text-red-400"
+                          : "border-transparent text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="type"
+                        value="expense"
+                        className="hidden"
+                        checked={type === "expense"}
+                        onChange={() => setType("expense")}
+                      />
+                      <FiArrowUpRight /> Gasto
+                    </label>
+                    <label
+                      className={`cursor-pointer flex items-center justify-center gap-2 py-2 rounded-lg transition-all border ${
+                        type === "income"
+                          ? "bg-green-500/10 border-green-500/50 text-green-400"
+                          : "border-transparent text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="type"
+                        value="income"
+                        className="hidden"
+                        checked={type === "income"}
+                        onChange={() => setType("income")}
+                      />
+                      <FiArrowDownLeft /> Ingreso
+                    </label>
+                  </div>
+
                   {/* Monto */}
-                  <div>
+                  <div className="space-y-1.5">
                     <label
                       htmlFor="amount"
-                      className="block text-sm font-medium text-gray-400 mb-1"
+                      className="text-[11px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider flex items-center gap-1"
                     >
-                      Monto
+                      <FiDollarSign /> Monto
                     </label>
                     <input
                       type="text"
@@ -154,17 +229,17 @@ export default function EditTransactionModal({
                       onChange={handleAmountChange}
                       required
                       disabled={isSubmitting}
-                      className="w-full px-3 py-2 bg-dark-primary text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
+                      className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all font-mono"
                     />
                   </div>
 
                   {/* Descripción */}
-                  <div>
+                  <div className="space-y-1.5">
                     <label
                       htmlFor="description"
-                      className="block text-sm font-medium text-gray-400 mb-1"
+                      className="text-[11px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider flex items-center gap-1"
                     >
-                      Descripción
+                      <FiAlignLeft /> Descripción
                     </label>
                     <input
                       type="text"
@@ -174,104 +249,90 @@ export default function EditTransactionModal({
                       required
                       maxLength={255}
                       disabled={isSubmitting}
-                      className="w-full px-3 py-2 bg-dark-primary text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
+                      className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all"
                     />
                   </div>
 
-                  {/* Fecha */}
-                  <div>
-                    <label
-                      htmlFor="transaction_date"
-                      className="block text-sm font-medium text-gray-400 mb-1"
-                    >
-                      Fecha
-                    </label>
-                    <input
-                      type="date"
-                      id="transaction_date"
-                      name="transaction_date"
-                      defaultValue={formattedDate}
-                      required
-                      disabled={isSubmitting}
-                      className="w-full px-3 py-2 bg-dark-primary text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
-                    />
-                  </div>
-
-                  {/* Tipo */}
-                  <fieldset disabled={isSubmitting}>
-                    <legend className="text-sm font-medium text-gray-400 mb-2">
-                      Tipo
-                    </legend>
-                    <div className="flex gap-6">
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="radio"
-                          name="type"
-                          value="expense"
-                          defaultChecked={transaction.type === "expense"}
-                          className="h-4 w-4 mr-2 text-orange-500 bg-gray-700 border-gray-600 focus:ring-orange-500"
-                        />
-                        <span className="text-sm text-gray-200">Gasto</span>
+                  {/* Fecha y Cuenta (Grid de 2) */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label
+                        htmlFor="transaction_date"
+                        className="text-[11px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider flex items-center gap-1"
+                      >
+                        <FiCalendar /> Fecha
                       </label>
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="radio"
-                          name="type"
-                          value="income"
-                          defaultChecked={transaction.type === "income"}
-                          className="h-4 w-4 mr-2 text-orange-500 bg-gray-700 border-gray-600 focus:ring-orange-500"
-                        />
-                        <span className="text-sm text-gray-200">Ingreso</span>
-                      </label>
+                      <input
+                        type="date"
+                        id="transaction_date"
+                        name="transaction_date"
+                        defaultValue={formattedDate}
+                        required
+                        disabled={isSubmitting}
+                        className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all text-sm [color-scheme:dark]"
+                      />
                     </div>
-                  </fieldset>
 
-                  {/* Cuenta */}
-                  <div>
-                    <label
-                      htmlFor="account_id"
-                      className="block text-sm font-medium text-gray-400 mb-1"
-                    >
-                      Cuenta
-                    </label>
-                    <select
-                      id="account_id"
-                      name="account_id"
-                      defaultValue={transaction.account_id}
-                      required
-                      disabled={isSubmitting}
-                      className="w-full px-3 py-2 bg-dark-primary text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
-                    >
-                      {accounts.map((account) => (
-                        <option key={account.id} value={account.id}>
-                          {account.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="space-y-1.5">
+                      <label
+                        htmlFor="account_id"
+                        className="text-[11px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider flex items-center gap-1"
+                      >
+                        <FiCreditCard /> Cuenta
+                      </label>
+                      <div className="relative">
+                        <select
+                          id="account_id"
+                          name="account_id"
+                          defaultValue={transaction.account_id}
+                          required
+                          disabled={isSubmitting}
+                          className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all appearance-none cursor-pointer text-sm"
+                        >
+                          {accounts.map((acc) => (
+                            <option
+                              key={acc.id}
+                              value={acc.id}
+                              className="bg-[#1A1A1A] text-white"
+                            >
+                              {acc.name}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                          <svg
+                            className="h-4 w-4 fill-current"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Botones */}
-                  <div className="flex justify-center gap-3 pt-4">
+                  <div className="grid grid-cols-2 gap-3 pt-2">
                     <button
                       type="button"
                       onClick={handleClose}
                       disabled={isSubmitting}
-                      className="px-6 py-2 text-sm font-medium text-gray-200 bg-gray-600 rounded-lg hover:bg-gray-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-3 rounded-xl border border-white/10 text-gray-300 hover:bg-white/5 font-medium transition-all text-sm cursor-pointer"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="px-6 py-2 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      className="px-4 py-3 rounded-xl bg-[var(--color-primary)] text-white font-medium hover:bg-orange-600 transition-all shadow-lg shadow-orange-900/20 text-sm flex items-center justify-center gap-2 cursor-pointer"
                     >
                       {isSubmitting ? (
-                        <>
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                          Guardando...
-                        </>
+                        "Guardando..."
                       ) : (
-                        "Guardar Cambios"
+                        <>
+                          <FiSave className="w-4 h-4" /> Guardar Cambios
+                        </>
                       )}
                     </button>
                   </div>

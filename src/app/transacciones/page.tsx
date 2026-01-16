@@ -33,7 +33,7 @@ export default async function TransactionsPage() {
 
   return (
     // Ya no usamos <main> aquí porque el layout principal ya lo tiene
-    <div className="max-w-3xl mx-auto">
+    <div className=" mx-auto">
       <header className="mb-6">
         <Link
           href="/"

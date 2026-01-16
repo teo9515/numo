@@ -1,7 +1,6 @@
-// En src/app/layout.tsx (versión corregida con Flexbox)
 import type { Metadata } from "next";
 import "./globals.css";
-import Header from "./components/Header"; // Asumo que tienes un componente Header
+import Header from "./components/Header";
 
 export const metadata: Metadata = {
   title: "Numo",
@@ -15,11 +14,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className="flex flex-col min-h-screen bg-[var(--color-background)] text-[var(--color-text-primary)] antialiased">
-        <Header />
+      <body className="flex flex-col min-h-screen w-5/6 mx-auto bg-[var(--color-background)] text-[var(--color-text-primary)] antialiased">
+        <div className="sticky top-0 z-50 bg-[var(--color-background)]/80 backdrop-blur-md ">
+          <Header />
+        </div>
 
-        <main className="flex-grow p-4 md:p-8">
-          <div className="max-w-4xl mx-auto">{children}</div>
+        <main className="flex-grow py-4">
+          <div className="w-full h-full">{children}</div>
         </main>
       </body>
     </html>

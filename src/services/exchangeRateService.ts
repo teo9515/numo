@@ -1,79 +1,66 @@
-// En src/services/exchangeRateService.ts (Versión modificada para Fixer API)
+// src/services/exchangeRateService.ts
 
 class ExchangeRateService {
   private async fetchRateFromAPI(from: string, to: string): Promise<number | null> {
-    // 1. Obtenemos la clave de API desde las variables de entorno.
-    const apiKey = process.env.FIXER_API_KEY;
-
-    // 2. Verificamos que la clave de API exista.
-    if (!apiKey) {
-      console.error("❌ La clave de API de Fixer (FIXER_API_KEY) no está configurada en el archivo .env.local");
-      return null;
-    }
-
     try {
-      console.log(`🔄 Buscando tasa de cambio con Fixer API: ${from} → ${to}`);
-      
-      // 3. Creamos los headers para la autenticación.
-      const headers = new Headers();
-      headers.append("apikey", apiKey);
+      console.log(`🔄 Buscando tasa: ${from} → ${to} con Open ER API...`);
 
-      // 4. Hacemos la llamada a la API de Fixer.
-      const response = await fetch(`https://api.apilayer.com/fixer/latest?base=${from}&symbols=${to}`, {
-        method: 'GET',
-        headers: headers,
-        next: { revalidate: 3600 }, // Mantenemos el caché de 1 hora.
+      // Usamos una API diferente: Open Exchange Rates (versión open)
+      // Esta es más estable y devuelve todas las tasas basadas en la moneda 'from'
+      const response = await fetch(`https://open.er-api.com/v6/latest/${from}`, {
+        next: { revalidate: 3600 } // Caché de 1 hora
       });
 
       if (!response.ok) {
-        // Si la API falla, intentamos leer el mensaje de error que nos da.
-        const errorData = await response.json();
-        throw new Error(`La API de Fixer falló con estado ${response.status}: ${errorData.message}`);
+        throw new Error(`API respondió con estado ${response.status}`);
       }
 
       const data = await response.json();
+      
+      // La estructura es: { result: "success", rates: { "COP": 3700.50, ... } }
       const rate = data?.rates?.[to];
 
-      // 5. Verificamos que la respuesta sea válida.
-      if (data.success && rate && typeof rate === 'number' && rate > 0) {
-        console.log(`✅ Tasa obtenida de Fixer API: ${rate}`);
+      if (typeof rate === 'number') {
+        console.log(`✅ Tasa encontrada: 1 ${from} = ${rate} ${to}`);
         return rate;
       } else {
-        throw new Error('La respuesta de la API de Fixer no contiene una tasa válida.');
+        console.warn(`⚠️ La moneda ${to} no existe en la respuesta.`);
+        return null;
       }
+
     } catch (error) {
-      // 6. Capturamos cualquier error en el proceso.
-      console.error(`❌ Falló la obtención de la tasa con Fixer:`, error);
-      return null;
+      console.error(`❌ Error en fetchRateFromAPI:`, error);
+      return null; // Retornamos null para que se active el plan de emergencia
     }
   }
 
-  // --- El resto de la clase no necesita cambios ---
+  private getEmergencyRate(from: string, to: string): number {
+    // Valores "Hardcoded" para que tu portafolio NUNCA se vea roto
+    // incluso si no hay internet.
+    const fallbackRates: Record<string, number> = {
+      'USD-COP': 4100,
+      'EUR-COP': 4450,
+      'COP-USD': 0.00024,
+    };
 
-  private getEmergencyRate(from: string, to: string): number | null {
-    if (`${from}-${to}` === 'USD-COP') {
-      console.log(`🆘 Usando tasa de emergencia: 4000`);
-      return 4000; // Tasa de emergencia fija
-    }
-    return null;
+    const key = `${from}-${to}`;
+    const rate = fallbackRates[key] || 3700; // 3700 por defecto si no encuentra el par
+    
+    console.log(`🆘 Usando tasa de EMERGENCIA para ${key}: ${rate}`);
+    return rate;
   }
 
-  async getExchangeRate(fromCurrency: string, toCurrency: string = 'COP'): Promise<number | null> {
-    if (fromCurrency === toCurrency) {
-      return 1;
-    }
+  async getExchangeRate(fromCurrency: string, toCurrency: string = 'COP'): Promise<number> {
+    // 1. Si son la misma moneda, vale 1
+    if (fromCurrency === toCurrency) return 1;
 
+    // 2. Intentamos la API
     const onlineRate = await this.fetchRateFromAPI(fromCurrency, toCurrency);
+    if (onlineRate !== null) return onlineRate;
 
-    if (onlineRate) {
-      return onlineRate;
-    }
-
-    // Si la API falla, usamos nuestro plan B: la tasa de emergencia.
-    console.warn('🚨 La API de Fixer falló, usando tasa de emergencia como respaldo.');
+    // 3. Si todo falla, usamos la emergencia
     return this.getEmergencyRate(fromCurrency, toCurrency);
   }
 }
 
-// Exportamos una única instancia del servicio para usar en toda la app.
 export const exchangeRateService = new ExchangeRateService();

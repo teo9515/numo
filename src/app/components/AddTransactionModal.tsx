@@ -1,4 +1,3 @@
-// En src/components/AddTransactionModal.tsx
 "use client";
 
 import { useState, Fragment } from "react";
@@ -8,9 +7,13 @@ import { Account } from "@/types";
 
 type AddTransactionProps = {
   accounts: Account[];
+  isDemo?: boolean; // Nueva prop opcional
 };
 
-export default function AddTransactionModal({ accounts }: AddTransactionProps) {
+export default function AddTransactionModal({
+  accounts,
+  isDemo = false,
+}: AddTransactionProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
@@ -23,28 +26,23 @@ export default function AddTransactionModal({ accounts }: AddTransactionProps) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={openModal}
-        className="bg-[var(--color-primary)] border border-[var(--color-text-secondary)]/20 text-white h-12 w-[180px] rounded-lg font-normal hover:bg-orange-600 transition-colors text-sm tracking-[2px] hover:cursor-pointer"
-      >
+      <button type="button" onClick={openModal} className="btn-primary">
         Nueva transacción
       </button>
 
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={closeModal}>
+        <Dialog as="div" className="relative z-50" onClose={closeModal}>
           {/* Fondo oscuro semitransparente */}
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
-            enterFrom="opacity-10"
+            enterFrom="opacity-0"
             enterTo="opacity-100"
             leave="ease-in duration-200"
             leaveFrom="opacity-100"
-            leaveTo="opacity-100"
+            leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black/90" />
-            {/* Aumentamos la opacidad del fondo para mayor contraste */}
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" />
           </Transition.Child>
 
           <div className="fixed inset-0 overflow-y-auto">
@@ -56,13 +54,15 @@ export default function AddTransactionModal({ accounts }: AddTransactionProps) {
                 enterTo="opacity-100 scale-100"
                 leave="ease-in duration-200"
                 leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-100 scale-95"
+                leaveTo="opacity-0 scale-95"
               >
-                {/* --- CAMBIO CLAVE AQUÍ --- */}
-                {/* Hacemos el panel del modal transparente, ya que el formulario tiene su propio fondo */}
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-transparent text-left align-middle shadow-xl transition-all">
-                  {/* Ahora el TransactionForm se mostrará con su propio diseño oscuro sin conflictos */}
-                  <TransactionForm accounts={accounts} />
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-transparent text-left align-middle transition-all">
+                  {/* Pasamos la prop isDemo al formulario */}
+                  <TransactionForm
+                    accounts={accounts}
+                    closeModal={closeModal}
+                    isDemo={isDemo}
+                  />
                 </Dialog.Panel>
               </Transition.Child>
             </div>
