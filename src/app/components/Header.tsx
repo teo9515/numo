@@ -1,25 +1,46 @@
-"use client"; // Necesario para usar usePathname
+"use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FiGrid, FiList, FiUser, FiLogOut } from "react-icons/fi";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { User } from "@supabase/supabase-js"; // Importamos el tipo User
 
-export default function Header() {
+// Definimos que el Header puede recibir un usuario (o null)
+interface HeaderProps {
+  user: User | null;
+}
+
+export default function Header({ user }: HeaderProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams(); // Para detectar ?demo=true
   const router = useRouter();
   const supabase = createClient();
 
-  // SI ESTAMOS EN LOGIN, NO RENDERIZAMOS NADA
-  if (pathname === "/login") {
+  // --- LÓGICA DE VISIBILIDAD INTELIGENTE ---
+
+  const isDemo = searchParams.get("demo") === "true";
+  const isLoggedIn = !!user; // Convertimos el objeto user a boolean (true/false)
+
+  // 1. En /login, /register, etc., SIEMPRE ocultamos el header
+  const authRoutes = ["/login", "/register", "/forgot-password"];
+  if (authRoutes.includes(pathname)) {
     return null;
   }
+
+  // 2. CASO ESPECIAL DE LA HOME (/):
+  // Si estamos en "/", NO hay usuario y NO es demo -> Es la Landing Page -> OCULTAR
+  if (pathname === "/" && !isLoggedIn && !isDemo) {
+    return null;
+  }
+
+  // En cualquier otro caso (está logueado, es demo, o está en /transacciones), SE MUESTRA.
+  // -----------------------------------------
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.refresh();
-    router.push("/login");
+    router.push("/login"); // Redirigir al login al salir
   };
 
   const navLinks = [
@@ -28,9 +49,8 @@ export default function Header() {
   ];
 
   return (
-    // MOVEMOS LOS ESTILOS DEL LAYOUT AQUÍ
     <header className="sticky top-0 z-50 bg-[var(--color-background)]/80 backdrop-blur-md border-b border-white/5">
-      <div className="w-full h-16 flex items-center justify-between  max-w-7xl mx-auto">
+      <div className="w-full h-16 flex items-center justify-between max-w-7xl mx-auto px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
           <div className="w-8 h-8 bg-gradient-to-tr from-[var(--color-primary)] to-orange-400 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-orange-900/20 group-hover:scale-105 transition-transform">

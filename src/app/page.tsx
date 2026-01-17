@@ -53,8 +53,6 @@ export default async function Home({ searchParams }: HomeProps) {
   return (
     <>
       {showDashboard ? (
-        // CAMBIO: 'space-y-6' (antes 8) y 'pb-6' (antes 20).
-        // Esto elimina el hueco gigante al final.
         <div className="space-y-6 pb-6 w-full max-w-7xl mx-auto h-full flex flex-col justify-center">
           {/* HEADER DASHBOARD: Balance (Izq) + Acciones (Der) */}
           <section className="flex flex-col md:flex-row justify-between items-end gap-4 mt-2">
@@ -145,28 +143,43 @@ export default async function Home({ searchParams }: HomeProps) {
           </section>
         </div>
       ) : (
-        /* LANDING PAGE (Centrada verticalmente) */
-        <div className="flex flex-col items-center justify-center h-[70vh] px-4 text-center">
-          <div className="max-w-md space-y-6">
-            <h2 className="text-5xl font-extrabold text-[var(--color-text-primary)] leading-tight">
-              Numo<span className="text-[var(--color-primary)]">.</span>
-            </h2>
-            <p className="text-[var(--color-text-secondary)] text-lg">
-              Controla tus finanzas con claridad.
-            </p>
+        <div className="relative flex flex-col items-center justify-center flex-grow w-full h-auto overflow-hidden">
+          {/* 1. Efecto de Luz de Fondo (Glow) */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-orange-500/20 rounded-full blur-[100px] pointer-events-none" />
+          {/* Contenido Principal */}
 
-            <div className="flex flex-col gap-3 pt-4">
-              <Link href="/login" className="w-full">
-                <button className="w-full bg-[var(--color-primary)] hover:opacity-90 text-white px-8 py-2 rounded-lg text-base font-bold transition-all">
-                  Iniciar Sesión
-                </button>
-              </Link>
+          <div className="relative flex flex-col items-center justify-center min-h-[80vh] w-full overflow-hidden">
+            {/* 1. Efecto de Luz de Fondo (Más pequeño para ajustarse al contenido) */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] bg-orange-900/5 rounded-full blur-[80px] pointer-events-none" />
 
-              <Link href="/?demo=true" className="w-full">
-                <button className="w-full bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-secondary)] px-8 py-2 rounded-lg text-base font-medium transition-colors hover:bg-gray-50">
-                  Ver Demo
-                </button>
-              </Link>
+            {/* Contenido Principal (Más estrecho: max-w-sm) */}
+            <div className="relative z-10 w-full max-w-sm px-6 text-center space-y-6">
+              {/* Logo y Slogan */}
+              <div className="space-y-3">
+                <h2 className="text-5xl font-extrabold text-white tracking-tighter drop-shadow-2xl">
+                  Numo<span className="text-[var(--color-primary)]">.</span>
+                </h2>
+                <p className="text-[var(--color-text-secondary)] text-base font-medium leading-relaxed">
+                  Controla tus finanzas con <br />{" "}
+                  <span className="text-gray-300">claridad absoluta.</span>
+                </p>
+              </div>
+
+              {/* Botones */}
+              <div className="flex flex-col gap-3 pt-2">
+                <Link href="/login" className="w-full">
+                  {/* Usamos tu clase global btn-primary */}
+                  <button className="btn-primary w-full ">
+                    Iniciar Sesión
+                  </button>
+                </Link>
+
+                <Link href="/?demo=true" className="w-full">
+                  <button className="w-full bg-transparent text-gray-400 border border-white/10 py-2 rounded-lg text-base font-medium transition-all hover:bg-white/5 hover:text-white hover:border-white/20 active:scale-95 hover:cursor-pointer">
+                    Ver Demo
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
